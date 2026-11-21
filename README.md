@@ -1,6 +1,8 @@
-# Feature branch previews on Amazon EKS with GitOps (Argo CD)
+# Feature branch previews on Amazon EKS with GitOps (Argo CD) 
 
-A small working example with a React web page, Spring Boot Java API, and PostgreSQL. Each pull request from a branch **in this repository** gets its own copy at `https://pr-<number>.preview.example.com/`. The page reads a counter from the database and can write to it. Pushing new commits updates the two app images without resetting the PR's database.
+A small working example of ephemeral or preview environments for a React web app, Spring Boot Java API, and PostgreSQL. Each pull request from a branch **in this repository** gets its own copy at `https://pr-<number>.preview.example.com/`. 
+
+The sample app page reads a counter from the database and can write to it. Pushing new commits updates the two app images without resetting the PR's database.
 
 Deployment is **pull-based**. GitHub Actions only builds images and labels the PR. Argo CD runs inside the cluster, discovers labelled PRs with an ApplicationSet Pull Request generator, and syncs one Helm release per PR. When the PR closes, Argo CD deletes it. CI has no Kubernetes credentials at all.
 
