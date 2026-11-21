@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: preview
+  annotations:
+    preview-demo.example.com/managed: "true"
+    alb.ingress.kubernetes.io/group.name: {{ .Values.preview.albGroup | quote }}
+    alb.ingress.kubernetes.io/scheme: {{ .Values.preview.scheme | quote }}
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: {{ required "preview.certificateArn must be provided" .Values.preview.certificateArn | quote }}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    external-dns.kubernetes.io/alias: "true"
+spec:
+  ingressClassName: alb
+  rules:
+    - host: {{ required "preview.host must be provided" .Values.preview.host | quote }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: preview-api
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: preview-web
+                port:
+                  number: 80

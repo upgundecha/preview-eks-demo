@@ -1,0 +1,21 @@
+package example.preview;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HealthController {
+    private final JdbcTemplate db;
+
+    public HealthController(JdbcTemplate db) { this.db = db; }
+
+    @GetMapping("/health")
+    public String ready() {
+        db.queryForObject("SELECT 1", Integer.class);
+        return "ok";
+    }
+
+    @GetMapping("/live")
+    public String live() { return "ok"; }
+}

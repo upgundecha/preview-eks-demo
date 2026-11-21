@@ -1,0 +1,8 @@
+aws_region   = "ap-southeast-1"
+cluster_name = "branch-preview"
+
+# Optional overrides:
+# kubernetes_version           = "1.36"
+# vpc_cidr                     = "10.60.0.0/16"
+# node_instance_types          = ["t3.large"]
+# endpoint_public_access_cidrs = ["203.0.113.10/32"]  # your IP / VPN egress

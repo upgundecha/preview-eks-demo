@@ -1,0 +1,9 @@
+# Owned by the Application so that deleting the Application (PR closed)
+# removes the namespace and the StatefulSet's PVC with it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ required "preview.id must be provided" .Values.preview.id | quote }}
+  labels:
+    preview-demo.example.com/managed: "true"
+    preview-demo.example.com/pr: {{ .Values.preview.pr | quote }}

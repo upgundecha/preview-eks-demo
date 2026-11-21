@@ -1,0 +1,29 @@
+# Boundary for every generated preview Application. Argo CD refuses to sync
+# anything outside it, which replaces the cluster-admin GitHub role that the
+# push-based version of this demo needed.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: branch-previews
+  namespace: argocd
+spec:
+  description: Per-pull-request preview environments
+  sourceRepos:
+    - https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: preview-*
+  # The chart owns its Namespace so deleting the Application deletes the
+  # namespace, its PostgreSQL PVC and everything else in it.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - { group: "", kind: Service }
+    - { group: "", kind: ResourceQuota }
+    - { group: apps, kind: Deployment }
+    - { group: apps, kind: StatefulSet }
+    - { group: batch, kind: Job }
+    - { group: networking.k8s.io, kind: Ingress }
+    - { group: external-secrets.io, kind: ExternalSecret }
+    - { group: generators.external-secrets.io, kind: Password }

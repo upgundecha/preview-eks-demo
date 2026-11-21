@@ -1,0 +1,16 @@
+# Steady state is ~350m/1.7 CPU and ~0.7/1.4 GiB (requests/limits). The extra
+# headroom lets a rolling update start a new web and API pod alongside the old
+# ones, and lets the smoke-test Job run; otherwise quota admission blocks the
+# surge pod and the rollout stalls.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: preview-quota
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    requests.storage: 2Gi
+    pods: "10"

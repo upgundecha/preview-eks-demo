@@ -1,0 +1,66 @@
+# One Argo CD Application per open pull request that carries the `preview`
+# label. CI adds the label only after both images are in ECR. When the PR is
+# closed or the label is removed, the Application disappears and its finalizer
+# deletes the preview namespace.
+#
+# ${...} placeholders are filled by scripts/install-gitops.sh; {{...}} are
+# ApplicationSet Go-template fields resolved per pull request.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: branch-previews
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - pullRequest:
+        github:
+          owner: ${GITHUB_OWNER}
+          repo: ${GITHUB_REPO}
+          tokenRef:
+            secretName: github-token
+            key: token
+          labels:
+            - preview
+        requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: 'preview-{{.number}}'
+      labels:
+        preview-demo.example.com/pr: '{{.number}}'
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: branch-previews
+      source:
+        repoURL: https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git
+        # Trusted chart from the default branch; only the images come from the PR.
+        targetRevision: ${DEFAULT_BRANCH}
+        path: helm/preview
+        helm:
+          releaseName: 'preview-{{.number}}'
+          valuesObject:
+            preview:
+              id: 'preview-{{.number}}'
+              pr: '{{.number}}'
+              version: '{{.head_sha}}'
+              host: 'pr-{{.number}}.${PREVIEW_DOMAIN}'
+              certificateArn: '${ACM_CERTIFICATE_ARN}'
+            web:
+              image: '${WEB_ECR_URL}:pr-{{.number}}-{{.head_sha}}'
+            api:
+              image: '${API_ECR_URL}:pr-{{.number}}-{{.head_sha}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'preview-{{.number}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 10
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 5m

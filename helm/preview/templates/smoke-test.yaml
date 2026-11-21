@@ -1,0 +1,57 @@
+{{- if .Values.smokeTest.enabled }}
+# Runs after every successful sync, once all resources (including the Ingress
+# with its ALB address) are Healthy. A failure marks the sync as failed in
+# Argo CD. It checks the public hostname, so it also proves that ExternalDNS
+# and the certificate work.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: preview-smoke-test
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 1500
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+      containers:
+        - name: curl
+          image: {{ .Values.smokeTest.image | quote }}
+          env:
+            - name: HOST
+              value: {{ .Values.preview.host | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.preview.id | quote }}
+            - name: VERSION
+              value: {{ .Values.preview.version | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # A brand-new hostname can be negatively cached by the VPC
+              # resolver for a while, so allow up to ~20 minutes.
+              for attempt in $(seq 1 120); do
+                api="$(curl -fsS --max-time 5 "https://${HOST}/api/visits" || true)"
+                if echo "$api" | grep -q "\"environment\":\"${ENVIRONMENT}\"" \
+                  && echo "$api" | grep -q "\"version\":\"${VERSION}\"" \
+                  && curl -fsS --max-time 5 "https://${HOST}/" | grep -q '/assets/'; then
+                  echo "Preview is ready: https://${HOST}/ (${VERSION})"
+                  exit 0
+                fi
+                sleep 10
+              done
+              echo "https://${HOST}/ did not serve ${VERSION} in time; last API response: ${api}" >&2
+              exit 1
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+{{- end }}

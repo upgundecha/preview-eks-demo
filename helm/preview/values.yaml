@@ -1,0 +1,21 @@
+# preview.* and the image references are set per pull request by the
+# Argo CD ApplicationSet in gitops/argocd/previews-applicationset.yaml.
+preview:
+  id: ""
+  pr: ""
+  version: ""
+  host: ""
+  albGroup: "branch-preview-demo"
+  certificateArn: ""
+  scheme: internet-facing
+web:
+  image: ""
+api:
+  image: ""
+database:
+  image: postgres:17.12-alpine3.24
+  storage: 1Gi
+  passwordSecret: preview-db-secret
+smokeTest:
+  enabled: true
+  image: curlimages/curl:8.11.1
