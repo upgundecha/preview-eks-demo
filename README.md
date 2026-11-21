@@ -46,7 +46,7 @@ flowchart TB
 | DNS and TLS | One shared ALB IngressGroup and ACM `*.preview.example.com` certificate; ExternalDNS creates and removes a Route 53 alias for each PR |
 | GitHub Actions | Test, build and push; label the PR; verify the public URL. Nothing else. |
 
-The `branch-previews` AppProject is the security boundary. It allows only this repository as a source, only `preview-*` namespaces as destinations, and only the resource kinds the chart uses. The push-based version of this demo needed a cluster-admin role for GitHub. That role is gone.
+The `branch-previews` AppProject is the security boundary. It allows only this repository as a source, only `preview-*` namespaces as destinations, and only the resource kinds the chart uses. 
 
 ## Try the application locally
 
@@ -162,7 +162,7 @@ Set these **repository variables** under Settings → Secrets and variables → 
 | `API_ECR_URL` | Terraform output `api_ecr_url` |
 | `PREVIEW_DOMAIN` | Terraform's `preview_domain`, e.g. `preview.example.com` |
 
-The workflow uses no static AWS key and no cluster credentials. GitHub OIDC issues short-lived credentials that can only push to the two ECR repositories, and only from this repository's `pull_request` jobs. The old variables `EKS_CLUSTER`, `ACM_CERTIFICATE_ARN`, `ROUTE53_ZONE_ID` and `KUBECTL_VERSION` are no longer used.
+The workflow uses no static AWS key and no cluster credentials. GitHub OIDC issues short-lived credentials that can only push to the two ECR repositories, and only from this repository's `pull_request` jobs.
 
 ## 5. Open a feature PR
 
