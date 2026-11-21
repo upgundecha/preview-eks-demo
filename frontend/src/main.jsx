@@ -34,7 +34,7 @@ function App() {
   return (
     <main>
       <p className="eyebrow">Feature branch environment</p>
-      <h1>React → Java → PostgreSQL</h1>
+      <h1>Hello again — second push 🔁</h1>
       <p>This page and its API run together at <strong>{window.location.host}</strong>.</p>
       <section aria-live="polite">
         <h2>{result ? `${result.visits} visits recorded` : 'Connecting to the API…'}</h2>
