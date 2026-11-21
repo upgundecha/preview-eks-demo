@@ -6,3 +6,6 @@ cluster_name = "branch-preview"
 # vpc_cidr                     = "10.60.0.0/16"
 # node_instance_types          = ["t3.large"]
 # endpoint_public_access_cidrs = ["203.0.113.10/32"]  # your IP / VPN egress
+
+# Read-only access for whoever browses the cluster in the AWS console:
+# console_viewer_principal_arns = ["arn:aws:iam::123456789012:role/Admin"]

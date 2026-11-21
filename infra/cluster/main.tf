@@ -62,6 +62,21 @@ module "eks" {
   authentication_mode                      = "API"
   enable_cluster_creator_admin_permissions = true
 
+  # Read-only Kubernetes access for the identities you use in the AWS console,
+  # so the EKS "Resources" tab can list namespaces, pods and ingresses.
+  # AmazonEKSViewPolicy cannot change anything or read Secrets.
+  access_entries = {
+    for i, arn in var.console_viewer_principal_arns : "console-viewer-${i}" => {
+      principal_arn = arn
+      policy_associations = {
+        view = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
+  }
+
   # IAM OIDC provider for IRSA (Load Balancer Controller, EBS CSI, ExternalDNS).
   enable_irsa = true
 

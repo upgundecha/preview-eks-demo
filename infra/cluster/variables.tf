@@ -69,6 +69,12 @@ variable "endpoint_public_access_cidrs" {
   description = "CIDRs allowed to reach the public EKS API endpoint. Narrow this to your own IP or VPN egress."
 }
 
+variable "console_viewer_principal_arns" {
+  type        = list(string)
+  default     = []
+  description = "IAM principals (users, roles, or the account root) that get read-only Kubernetes access, so they can browse the cluster in the EKS console."
+}
+
 variable "load_balancer_controller_chart_version" {
   type        = string
   default     = "3.6.2"
