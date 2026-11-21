@@ -2,6 +2,10 @@ aws_region       = "ap-southeast-1"
 eks_cluster_name = "my-dedicated-preview-cluster"
 github_owner     = "your-github-org"
 github_repo      = "preview-eks-demo"
+# Needed if `gh api repos/OWNER/REPO/actions/oidc/customization/sub` shows
+# "use_immutable_subject": true (the default for new repositories):
+# github_owner_id  = "1234567"     # gh api users/OWNER --jq .id
+# github_repo_id   = "987654321"   # gh api repos/OWNER/REPO --jq .id
 preview_domain   = "preview.example.com"
 route53_zone_id  = "Z0123456789EXAMPLE"
 project_id       = "branch-demo"

@@ -28,6 +28,18 @@ variable "github_repo" {
   description = "Exact GitHub repository name."
 }
 
+variable "github_owner_id" {
+  type        = string
+  default     = ""
+  description = "Numeric ID of github_owner (`gh api users/OWNER --jq .id`). Required when the repository uses immutable OIDC subjects."
+}
+
+variable "github_repo_id" {
+  type        = string
+  default     = ""
+  description = "Numeric ID of the repository (`gh api repos/OWNER/REPO --jq .id`). Required when the repository uses immutable OIDC subjects."
+}
+
 variable "preview_domain" {
   type        = string
   description = "Subdomain for previews, e.g. preview.example.com."

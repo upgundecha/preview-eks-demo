@@ -104,7 +104,9 @@ terraform -chdir=infra/terraform apply
 terraform -chdir=infra/terraform output
 ```
 
-If an IAM GitHub OIDC provider already exists in your AWS account, supply its ARN as `github_oidc_provider_arn` instead of creating a second one. `route53_zone_id` must point to the **public** hosted zone used for ACM validation and preview aliases.
+If an IAM GitHub OIDC provider already exists in your AWS account, supply its ARN as `github_oidc_provider_arn` instead of creating a second one.
+
+**Check the repository's OIDC subject format first.** Run `gh api repos/OWNER/REPO/actions/oidc/customization/sub`. If it shows `"use_immutable_subject": true`, which is the default for new repositories, GitHub sends `repo:OWNER@OWNER_ID/REPO@REPO_ID:pull_request`. In that case, set `github_owner_id` (`gh api users/OWNER --jq .id`) and `github_repo_id` (`gh api repos/OWNER/REPO --jq .id`). Otherwise, `configure-aws-credentials` fails with *Not authorized to perform sts:AssumeRoleWithWebIdentity*. The trust policy matches these exact IDs and never uses wildcards. `route53_zone_id` must point to the **public** hosted zone used for ACM validation and preview aliases.
 
 > **Upgrading from the push-based version?** `terraform apply` removes the GitHub role's EKS access entry and its cluster-admin association, and narrows its trust to PR jobs. Also delete the old `default_branch` line from your `terraform.tfvars`. Previews that the old workflow created with plain Helm are not managed by Argo CD. Remove them with `helm uninstall preview-<N> -n preview-<N> && kubectl delete ns preview-<N>`. Once the PR is labelled, Argo CD recreates them.
 

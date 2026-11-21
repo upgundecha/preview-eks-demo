@@ -20,6 +20,18 @@ locals {
   github_provider_arn = var.github_oidc_provider_arn == "" ? aws_iam_openid_connect_provider.github[0].arn : var.github_oidc_provider_arn
   eks_oidc_host       = replace(data.aws_eks_cluster.preview.identity[0].oidc[0].issuer, "https://", "")
   prefix              = "${var.project_id}-preview"
+
+  # GitHub sends one of two OIDC subject formats, depending on the repository's
+  # setting (`gh api repos/OWNER/REPO/actions/oidc/customization/sub`):
+  #   legacy:    repo:OWNER/REPO:pull_request
+  #   immutable: repo:OWNER@OWNER_ID/REPO@REPO_ID:pull_request  (default for new repos)
+  # The immutable form survives renames and can't be claimed by a re-created
+  # repository of the same name, so it's pinned to exact IDs, never wildcards.
+  github_pr_subjects = concat(
+    ["repo:${var.github_owner}/${var.github_repo}:pull_request"],
+    var.github_owner_id != "" && var.github_repo_id != "" ?
+    ["repo:${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}:pull_request"] : []
+  )
 }
 
 resource "aws_ecr_repository" "web" {
@@ -74,10 +86,10 @@ data "aws_iam_policy_document" "github_trust" {
       values   = ["sts.amazonaws.com"]
     }
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       # Only the PR build job assumes this role; deploys are pulled by Argo CD.
-      values = ["repo:${var.github_owner}/${var.github_repo}:pull_request"]
+      values = local.github_pr_subjects
     }
   }
 }
