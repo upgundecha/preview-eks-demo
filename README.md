@@ -224,7 +224,17 @@ The cluster name and region come from `infra/cluster`'s outputs. Set `CLUSTER_NA
 - **Shared ALB IngressGroup.** All previews share one IngressGroup. Only the trusted chart on the default branch creates Ingresses in that group, and the AWS controller warns that an Ingress author could otherwise add or override group rules. Check ALB listener-rule capacity before allowing many simultaneous PRs.
 - **Image tags.** Tags are `pr-<N>-<sha>` and immutable, so re-running a workflow for the same commit reuses the existing images. ECR images accumulate until you add a lifecycle policy suited to the longest-lived preview.
 - **Volume cleanup.** Deleting the namespace deletes the PVC. Whether the underlying EBS volume is also removed depends on your StorageClass reclaim policy, so check it.
-- **DNS caching on new hostnames.** A new hostname can be negatively cached by resolvers that looked it up before ExternalDNS created it. The smoke test and the `verify` job allow about 20–25 minutes for this, although it normally takes a few minutes.
+- **DNS caching on new hostnames.** The smoke test usually looks up `pr-<N>` before ExternalDNS has created it. The VPC resolver then caches that "doesn't exist" answer for the smaller of the zone's SOA TTL and its SOA minimum field. For a new Route 53 zone that is 900 seconds, so the first preview took about 5 minutes longer than it needed to. Lower it once per zone:
+
+  ```bash
+  Z=<zone-id>
+  soa=$(aws route53 list-resource-record-sets --hosted-zone-id $Z --query "ResourceRecordSets[?Type=='SOA']|[0]" --output json)
+  v=$(jq -r '.ResourceRecords[0].Value' <<<"$soa" | awk '{$7=60; print}')
+  aws route53 change-resource-record-sets --hosted-zone-id $Z --change-batch "$(jq -n --arg n "$(jq -r .Name <<<"$soa")" --arg v "$v" \
+    '{Changes:[{Action:"UPSERT",ResourceRecordSet:{Name:$n,Type:"SOA",TTL:60,ResourceRecords:[{Value:$v}]}}]}')"
+  ```
+
+  The smoke test and the `verify` job still allow 20–25 minutes, in case your zone isn't changed.
 - **Alternative layout.** If you want every deployment recorded as a Git commit, for example so you can pin by digest, have CI write `previews/pr-<N>/values.yaml` to a separate config repository. Then switch the ApplicationSet to a Git directory generator. CI then needs write access to that repository, and a closed PR must delete its folder.
 
 ## Source documentation
