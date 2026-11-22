@@ -34,6 +34,8 @@ flowchart TB
 | PR closed, or label removed | The generator stops producing the Application. Its `resources-finalizer` deletes all resources, including the Namespace, so the PVC goes too. ExternalDNS then removes the Route 53 record. |
 | Drift or a missed event | Argo CD keeps reconciling continuously, so no cleanup or repair cron job is needed. |
 
+Evidenced in [PR#1](https://github.com/upgundecha/preview-eks-demo/pull/1) and [PR#2](https://github.com/upgundecha/preview-eks-demo/pull/2)
+
 ## What it creates
 
 | Layer | Implementation |
