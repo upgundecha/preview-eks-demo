@@ -23,6 +23,12 @@ flowchart TB
   CI -. "verify: poll public URL for this commit" .-> DNS
 ```
 
+### AWS deployment
+
+![AWS deployment with Argo CD](docs/architecture.png)
+
+The diagram is generated from [`docs/architecture.py`](docs/architecture.py). To regenerate it, install Graphviz and `pip install diagrams`, then run `python docs/architecture.py` from the repo root.
+
 ## How it works
 
 | Event | What happens |
